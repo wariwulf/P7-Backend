@@ -1,6 +1,7 @@
 const Books = require('../models/Books');
 const fs = require('fs');
 
+// Fonction pour créer un nouveau livre dans la base de données
 exports.createBooks = (req, res) =>{
     const booksObject = JSON.parse(req.body.book);
     delete booksObject._id;
@@ -11,11 +12,13 @@ exports.createBooks = (req, res) =>{
         imageUrl: `${req.protocol}://${req.get('host')}/images/${req.file.filename}`
     });
 
-   book.save()
-    .then(() => { res.status(201).json({message: 'Objet enregistré!'})})
-    .catch(error => { res.status(400).json ({ error })}); 
+    // Enregistre le nouveau livre dans la base de données
+    book.save()
+        .then(() => { res.status(201).json({message: 'Objet enregistré!'})})
+        .catch(error => { res.status(400).json ({ error })}); 
 };
 
+// Fonction pour mettre à jour un livre existant dans la base de données
 exports.modifBooks = (req, res) => {
     const booksObject = req.file ? {
         ...JSON.parse(req.body.book),
@@ -25,9 +28,11 @@ exports.modifBooks = (req, res) => {
     delete booksObject._userId;
     Books.findOne({_id: req.params.id})
         .then((book) => {
+            // Vérifie si l'utilisateur actuel est autorisé à modifier ce livre
             if (book.userId != req.auth.userId) {
                 res.status(401).json({ message: 'Non-autorisé!'});
             } else {
+                // Met à jour le livre avec les nouvelles informations
                 Books.updateOne ({ _id: req.params.id}, { ...booksObject, _id: req.params.id})
                     .then(() => res.status(200).json({message: 'Objet modifié!'}))
                     .catch(error => res.status(401).json({ error }));
@@ -37,6 +42,7 @@ exports.modifBooks = (req, res) => {
             res.status(400).json({ error }));
 };
 
+// Fonction pour récupérer un livre par son ID depuis la base de données
 exports.getOneBook = (req, res, next) => {
     Books.findOne({
       _id: req.params.id
@@ -51,25 +57,28 @@ exports.getOneBook = (req, res, next) => {
         });
       }
     );
-  };
+};
 
+// Fonction pour récupérer tous les livres depuis la base de données
 exports.getAllBooks = (req, res) => {
     Books.find()
         .then(book => res.status(200).json(book))
         .catch(error => res.status(400).json ({ error }));
 };
 
+// Fonction pour supprimer un livre de la base de données
 exports.deleteBook = (req, res, next) => {
     Books.findOne({ _id: req.params.id})
         .then(book => {
+            // Vérifie si l'utilisateur actuel est autorisé à supprimer ce livre
             if (!book) {
                 return res.status(404).json({ message: 'Book not found' });
             }
 
-
             if (book.userId != req.auth.userId) {
                 res.status(401).json({message: 'Not authorized'});
             } else {
+                // Supprime le livre de la base de données et l'image associée
                 const filename = book.imageUrl.split('/images/')[1];
                 fs.unlink(`images/${filename}`, () => {
                     Books.deleteOne({_id: req.params.id})
@@ -81,9 +90,10 @@ exports.deleteBook = (req, res, next) => {
         .catch( error => {
             res.status(500).json({ error });
         });
- };
+};
 
- exports.addRating = async (req, res) => {
+// Fonction pour ajouter une notation à un livre
+exports.addRating = async (req, res) => {
     const { userId, rating } = req.body;
     const bookId = req.params.id;
     
@@ -118,10 +128,11 @@ exports.deleteBook = (req, res, next) => {
     } catch (error) {
       return res.status(500).json({ error: 'Erreur lors de l\'enregistrement de la notation.' });
     }
-  };
+};
 
-  exports.getBestRatedBooks = (req, res) => {
-    // Récupére les 3 livres ayant la meilleure note moyenne (dans l'ordre décroissant)
+// Fonction pour récupérer les 3 livres les mieux notés depuis la base de données
+exports.getBestRatedBooks = (req, res) => {
+    // Récupère les 3 livres ayant la meilleure note moyenne (dans l'ordre décroissant)
     Books.find().sort({ averageRating: -1 }).limit(3)
       .then((bestRatedBooks) => {
         res.status(200).json(bestRatedBooks);
@@ -129,6 +140,6 @@ exports.deleteBook = (req, res, next) => {
       .catch((error) => {
         res.status(500).json({ error });
       });
-  };
+};
 
 module.exports = exports;
