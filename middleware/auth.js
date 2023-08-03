@@ -1,4 +1,7 @@
+require('dotenv').config();
+
 const jwt = require('jsonwebtoken');
+const secretKey = process.env.JWT_SECRET ;
 
 module.exports = (req, res, next) => {
     try {
@@ -6,7 +9,8 @@ module.exports = (req, res, next) => {
         const token = req.headers.authorization.split(' ')[1];
 
         // Vérifie et décode le token à l'aide de la clé secrète 'RANDOM_TOKEN_SECRET'
-        const decodedToken = jwt.verify(token, 'RANDOM_TOKEN_SECRET');
+        const decodedToken = jwt.verify(token, secretKey
+            );
 
         // Récupère l'identifiant de l'utilisateur depuis le token décodé
         const userId = decodedToken.userId;

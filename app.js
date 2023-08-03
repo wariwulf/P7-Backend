@@ -3,13 +3,14 @@ const mongoose = require('mongoose');
 const bodyParser = require('body-parser');
 const path = require('path');
 const cors = require('cors');
+require('dotenv').config();
 
 const booksRoutes = require('./routes/books');
 const userRoutes = require('./routes/Users');
+const dbUri = process.env.DB_URI;
 
 // Connexion à la base de données MongoDB
-mongoose.connect('mongodb+srv://robin:robin123@api.o7ep8qn.mongodb.net/?retryWrites=true&w=majority',
-  { useNewUrlParser: true, useUnifiedTopology: true })
+mongoose.connect(dbUri, { useNewUrlParser: true, useUnifiedTopology: true })
   .then(() => console.log('Connexion à MongoDB réussie !'))
   .catch(() => console.log('Connexion à MongoDB échouée !'));
 

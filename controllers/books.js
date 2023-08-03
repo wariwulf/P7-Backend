@@ -1,4 +1,4 @@
-const Books = require('../models/Books');
+const Books = require('../models/books');
 const fs = require('fs');
 
 // Fonction pour créer un nouveau livre dans la base de données
